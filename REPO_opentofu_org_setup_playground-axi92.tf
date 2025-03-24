@@ -24,31 +24,34 @@ resource "github_repository" "opentofu_org_setup_playground-axi92" {
   web_commit_signoff_required = false
 }
 
-resource "github_branch_protection" "branch_protection" {
-  repository_id = github_repository.secure_repo.id
-  pattern = "main"
-  enforce_admins = true
-  require_signed_commits = true
-  require_conversation_resolution = true
-  required_status_checks {
-    # strict to true to be sure that the branch is in sync with main and all changes work on main after the merge
-    strict = true
-    contexts = ["ci/mondoo"]
-  }
+resource "github_repository_ruleset" "protect-main" {
+  name        = "protect-main"
+  repository  = github_repository.opentofu_org_setup_playground-axi92.name
+  target      = "branch"
+  enforcement = "active"
 
-  required_pull_request_reviews {
-    dismiss_stale_reviews = true
-    restrict_dismissals = true
-    required_approving_review_count = 2
-    require_code_owner_reviews = true
-    dismissal_restrictions = [
-      "/user1",
-    ]
+
+  conditions {
+    ref_name {
+      include = ["~DEFAULT_BRANCH"]
+      exclude = []
+    }
   }
-  restrict_pushes {
-    push_allowances = [
-      "/user1",
-    ]
+  rules {
+    non_fast_forward        = true
+    required_linear_history = false
+    update                  = false
+    deletion                = true
+    required_signatures     = true
+    pull_request {
+      dismiss_stale_reviews_on_push     = true
+      require_code_owner_review         = true
+      require_last_push_approval        = true
+      required_approving_review_count   = 1
+      required_review_thread_resolution = true
+    }
+    merge_queue {
+      merge_method = "MERGE"
+    }
   }
-  allows_force_pushes = false
 }
