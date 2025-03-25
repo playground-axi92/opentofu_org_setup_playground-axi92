@@ -28,9 +28,7 @@ resource "github_repository_ruleset" "protect-main" {
   name        = "protect-main"
   repository  = github_repository.opentofu_org_setup_playground-axi92.name
   target      = "branch"
-  enforcement = "active"
-
-
+  enforcement = "disabled" # active or disabled
   conditions {
     ref_name {
       include = ["~DEFAULT_BRANCH"]
@@ -49,9 +47,8 @@ resource "github_repository_ruleset" "protect-main" {
       require_last_push_approval        = true
       required_approving_review_count   = 1
       required_review_thread_resolution = true
-    }
-    merge_queue {
-      merge_method = "MERGE"
+      # allowed_merge_methods is not yet implemented
+      # https://github.com/integrations/terraform-provider-github/issues/2530
     }
   }
 }
